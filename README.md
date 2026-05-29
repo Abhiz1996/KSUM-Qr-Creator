@@ -10,6 +10,24 @@ node server.js
 
 Open `http://localhost:3000`.
 
+## Vercel Tracking Setup
+
+The hosted Vercel app needs persistent storage for scan analytics. Add a Vercel Marketplace Redis/Upstash integration to the project so these environment variables are available:
+
+```txt
+KV_REST_API_URL
+KV_REST_API_TOKEN
+```
+
+The API also supports the equivalent Upstash names:
+
+```txt
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
+```
+
+After storage is connected and Vercel redeploys, generated dynamic QR codes use `/r/:id` links on the deployed domain. Each scan records a visit and redirects to the destination URL.
+
 ## What It Does
 
 - Creates QR codes for URLs, text, email, SMS, WiFi, vCard, and WhatsApp.
