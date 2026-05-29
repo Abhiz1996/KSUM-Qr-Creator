@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Analytics Studio</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div>
+        <p class="eyebrow">QR Studio</p>
+        <h1>Generate, style, and track every scan.</h1>
+      </div>
+      <nav class="qr-list" id="qrList" aria-label="Saved QR codes"></nav>
+    </aside>
+
+    <main class="workspace">
+      <section class="panel composer" aria-label="QR composer">
+        <form id="qrForm">
+          <div class="form-head">
+            <div>
+              <p class="eyebrow">Create</p>
+              <h2>Dynamic QR</h2>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="dynamic" checked>
+              <span>Track scans</span>
+            </label>
+          </div>
+
+          <label>
+            Name
+            <input id="name" name="name" placeholder="Summer campaign" required>
+          </label>
+
+          <div class="grid two">
+            <label>
+              Type
+              <select id="type" name="type">
+                <option value="url">Website URL</option>
+                <option value="text">Plain text</option>
+                <option value="email">Email</option>
+                <option value="sms">SMS</option>
+                <option value="wifi">WiFi</option>
+                <option value="vcard">vCard</option>
+                <option value="whatsapp">WhatsApp</option>
+              </select>
+            </label>
+            <label>
+              Error correction
+              <select id="errorCorrection">
+                <option value="M">Balanced</option>
+                <option value="Q">High</option>
+                <option value="H">Logo safe</option>
+                <option value="L">Compact</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Destination / data
+            <textarea id="destination" rows="4" placeholder="https://example.com" required></textarea>
+          </label>
+
+          <div class="grid three">
+            <label>
+              Foreground
+              <input type="color" id="foreground" value="#111827">
+            </label>
+            <label>
+              Background
+              <input type="color" id="background" value="#ffffff">
+            </label>
+            <label>
+              Accent
+              <input type="color" id="accent" value="#2dd4bf">
+            </label>
+          </div>
+
+          <div class="grid three">
+            <label>
+              Frame
+              <select id="frame">
+                <option value="none">None</option>
+                <option value="scan">Scan me</option>
+                <option value="ticket">Ticket</option>
+                <option value="badge">Badge</option>
+              </select>
+            </label>
+            <label>
+              Logo text
+              <input id="logoText" maxlength="3" placeholder="AC">
+            </label>
+            <label>
+              Size
+              <input type="range" id="size" min="180" max="520" value="280">
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="primary">Save QR</button>
+            <button type="button" id="newQr">New</button>
+            <button type="button" id="deleteQr" class="danger">Delete</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="preview-zone">
+        <div class="panel preview-card">
+          <div id="qrPreview" class="qr-preview"></div>
+          <div class="download-row">
+            <button id="downloadPng">PNG</button>
+            <button id="downloadSvg">SVG</button>
+          </div>
+          <p id="shortUrl" class="short-url"></p>
+        </div>
+
+        <div class="panel analytics">
+          <div class="analytics-head">
+            <div>
+              <p class="eyebrow">Analytics</p>
+              <h2>Scan data</h2>
+            </div>
+            <button id="refresh">Refresh</button>
+          </div>
+          <div class="analytics-tabs" id="analyticsTabs" role="tablist" aria-label="QR analytics"></div>
+          <p id="analyticsTitle" class="analytics-title">No QR selected</p>
+          <div class="metrics">
+            <article><strong id="totalScans">0</strong><span>Total scans</span></article>
+            <article><strong id="uniqueVisitors">0</strong><span>Unique visitors</span></article>
+            <article><strong id="lastScan">Never</strong><span>Last scan</span></article>
+          </div>
+          <div class="chart" id="scanChart" aria-label="Scans by day"></div>
+          <h3>Recent scans</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Time</th><th>Device</th><th>Browser</th><th>OS</th></tr></thead>
+              <tbody id="recentScans"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/vendor/qrcode.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
