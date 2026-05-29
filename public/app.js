@@ -1,10 +1,12 @@
 const state = {
   qrs: [],
   selectedId: null,
-  renderedCanvas: null
+  renderedCanvas: null,
+  staticMode: false
 };
 
 const $ = selector => document.querySelector(selector);
+const LOCAL_STORE_KEY = "ksum-qr-creator-qrs";
 
 const els = {
   list: $("#qrList"),
@@ -83,11 +85,45 @@ function selectedQr() {
 }
 
 async function loadQrs() {
-  const response = await fetch("/api/qrs");
-  const data = await response.json();
-  state.qrs = data.qrs;
+  try {
+    const response = await fetch("/api/qrs");
+    if (!response.ok) throw new Error("API unavailable");
+    const data = await response.json();
+    state.staticMode = false;
+    state.qrs = data.qrs;
+  } catch {
+    state.staticMode = true;
+    state.qrs = loadLocalQrs();
+  }
   if (!state.selectedId && state.qrs[0]) state.selectedId = state.qrs[0].id;
   renderAll();
+}
+
+function loadLocalQrs() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_STORE_KEY) || "[]").map(enrichLocalQr);
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalQrs(qrs) {
+  localStorage.setItem(LOCAL_STORE_KEY, JSON.stringify(qrs.map(({ analytics, shortUrl, ...qr }) => qr)));
+}
+
+function enrichLocalQr(qr) {
+  return {
+    ...qr,
+    shortUrl: "",
+    payload: qr.payload || qr.destination,
+    analytics: qr.analytics || {
+      totalScans: 0,
+      uniqueVisitors: 0,
+      lastScanAt: null,
+      byDay: {},
+      recentScans: []
+    }
+  };
 }
 
 function renderAll() {
@@ -115,7 +151,7 @@ function renderList() {
 
 function renderAnalyticsTabs() {
   if (!state.qrs.length) {
-    els.analyticsTabs.innerHTML = `<span class="empty-tabs">Save a QR code to see analytics tabs.</span>`;
+    els.analyticsTabs.innerHTML = `<span class="empty-tabs">${state.staticMode ? "Published demo mode: saved QRs stay in this browser." : "Save a QR code to see analytics tabs."}</span>`;
     return;
   }
 
@@ -182,7 +218,9 @@ function renderQr(qr) {
 
   state.renderedCanvas = canvas;
   els.preview.appendChild(frame);
-  els.shortUrl.textContent = qr.dynamic && qr.shortUrl ? qr.shortUrl : "Static QR: analytics are unavailable unless scan tracking is enabled.";
+  els.shortUrl.textContent = state.staticMode
+    ? "Published demo mode: run the Node server for tracked short links and analytics."
+    : qr.dynamic && qr.shortUrl ? qr.shortUrl : "Static QR: analytics are unavailable unless scan tracking is enabled.";
 }
 
 function drawQr(canvas, payload, style) {
@@ -244,20 +282,50 @@ function escapeHtml(value = "") {
 async function saveQr(event) {
   event.preventDefault();
   const qr = currentForm();
+  if (state.staticMode) {
+    const savedQr = enrichLocalQr({
+      ...qr,
+      id: state.selectedId || crypto.randomUUID(),
+      createdAt: selectedQr()?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    const existing = state.qrs.findIndex(item => item.id === savedQr.id);
+    if (existing >= 0) state.qrs[existing] = savedQr;
+    else state.qrs.unshift(savedQr);
+    saveLocalQrs(state.qrs);
+    state.selectedId = savedQr.id;
+    renderAll();
+    return;
+  }
+
   const method = state.selectedId ? "PUT" : "POST";
   const url = state.selectedId ? `/api/qrs/${state.selectedId}` : "/api/qrs";
-  const response = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(qr)
-  });
-  const data = await response.json();
-  state.selectedId = data.qr.id;
-  await loadQrs();
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(qr)
+    });
+    if (!response.ok) throw new Error("Save failed");
+    const data = await response.json();
+    state.selectedId = data.qr.id;
+    await loadQrs();
+  } catch {
+    state.staticMode = true;
+    await saveQr(event);
+  }
 }
 
 async function deleteQr() {
   if (!state.selectedId) return;
+  if (state.staticMode) {
+    state.qrs = state.qrs.filter(qr => qr.id !== state.selectedId);
+    saveLocalQrs(state.qrs);
+    state.selectedId = null;
+    fillForm(null);
+    renderAll();
+    return;
+  }
   await fetch(`/api/qrs/${state.selectedId}`, { method: "DELETE" });
   state.selectedId = null;
   fillForm(null);
