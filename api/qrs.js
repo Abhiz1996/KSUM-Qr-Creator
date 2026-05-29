@@ -1,4 +1,4 @@
-const { loadStore, saveStore, send, sendError, parseBody, normalizeQr, withAnalytics } = require("./_lib/store");
+const { loadStore, saveStore, send, sendError, readBody, normalizeQr, withAnalytics } = require("./_lib/store");
 
 module.exports = async function handler(req, res) {
   try {
@@ -9,7 +9,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      const input = parseBody(req);
+      const input = await readBody(req);
       if (!input.destination && !input.payload) return send(res, 400, { error: "Destination is required." });
       const qr = normalizeQr(input);
       store.qrs.unshift(qr);

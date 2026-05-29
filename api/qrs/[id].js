@@ -1,4 +1,4 @@
-const { loadStore, saveStore, send, sendError, parseBody, normalizeQr, withAnalytics } = require("../_lib/store");
+const { loadStore, saveStore, send, sendError, readBody, normalizeQr, withAnalytics } = require("../_lib/store");
 
 module.exports = async function handler(req, res) {
   try {
@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
     if (req.method === "PUT") {
       store.qrs[index] = normalizeQr({
         ...store.qrs[index],
-        ...parseBody(req),
+        ...await readBody(req),
         id,
         createdAt: store.qrs[index].createdAt
       });

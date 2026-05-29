@@ -29,7 +29,13 @@ async function redis(command, ...args) {
     body: JSON.stringify([command, ...args])
   });
 
-  const data = await response.json();
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { error: text || "Redis returned a non-JSON response." };
+  }
   if (!response.ok || data.error) throw new Error(data.error || "Redis command failed.");
   return data.result;
 }
@@ -70,6 +76,22 @@ function parseBody(req) {
     }
   }
   return req.body;
+}
+
+function readBody(req) {
+  return new Promise(resolve => {
+    if (req.body !== undefined) return resolve(parseBody(req));
+    let body = "";
+    req.on("data", chunk => {
+      body += chunk;
+    });
+    req.on("end", () => {
+      resolve(parseBody({ body }));
+    });
+    req.on("error", () => {
+      resolve({});
+    });
+  });
 }
 
 function normalizeQr(input) {
@@ -171,6 +193,7 @@ module.exports = {
   send,
   sendError,
   parseBody,
+  readBody,
   normalizeQr,
   withAnalytics,
   scanRecord
