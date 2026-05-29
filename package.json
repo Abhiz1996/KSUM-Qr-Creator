@@ -4,7 +4,7 @@
   "private": true,
   "description": "Dependency-free dynamic QR generator with scan analytics.",
   "scripts": {
-    "start": "node server.js"
+    "local": "node server.js"
   },
   "engines": {
     "node": ">=18"
