@@ -1,8 +1,10 @@
 const crypto = require("crypto");
 
 const STORE_KEY = "ksum-qr-store";
+let memoryStore = defaultStore();
 
 function storageConfig() {
+  if (process.env.USE_REDIS_STORAGE !== "true") return {};
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   return { url, token };
@@ -41,6 +43,7 @@ async function redis(command, ...args) {
 }
 
 async function loadStore() {
+  if (!storageConfig().url || !storageConfig().token) return memoryStore;
   const raw = await redis("GET", STORE_KEY);
   if (!raw) return defaultStore();
   try {
@@ -51,6 +54,10 @@ async function loadStore() {
 }
 
 async function saveStore(store) {
+  if (!storageConfig().url || !storageConfig().token) {
+    memoryStore = store;
+    return;
+  }
   await redis("SET", STORE_KEY, JSON.stringify(store));
 }
 

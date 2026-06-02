@@ -8,6 +8,7 @@ const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_FILE = path.join(ROOT, "data", "store.json");
 const STORE_KEY = "ksum-qr-store";
+let memoryStore = defaultStore();
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -23,6 +24,7 @@ function defaultStore() {
 }
 
 function storageConfig() {
+  if (process.env.USE_REDIS_STORAGE !== "true") return {};
   return {
     url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
@@ -62,7 +64,7 @@ async function loadStore() {
     }
   }
 
-  if (process.env.VERCEL) return defaultStore();
+  if (process.env.VERCEL) return memoryStore;
 
   try {
     return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
@@ -78,9 +80,8 @@ async function saveStore(store) {
   }
 
   if (process.env.VERCEL) {
-    const error = new Error("Storage is not configured. Add Vercel KV or Upstash Redis env vars.");
-    error.code = "NO_STORAGE";
-    throw error;
+    memoryStore = store;
+    return;
   }
 
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
