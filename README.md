@@ -28,13 +28,7 @@ UPSTASH_REDIS_REST_TOKEN
 
 After storage is connected and Vercel redeploys, generated dynamic QR codes use `/r/:id` links on the deployed domain. Each scan records a visit and redirects to the destination URL.
 
-Set this flag only after the writable Redis/KV variables are configured:
-
-```txt
-USE_REDIS_STORAGE=true
-```
-
-Without that flag, the Vercel app uses an in-memory fallback so creation and scan counting work without crashing, but counts can reset when Vercel starts a fresh serverless instance.
+If Redis/KV variables are missing, the Vercel app uses an in-memory fallback so creation and scan counting work without crashing, but counts can reset when Vercel starts a fresh serverless instance.
 
 ## What It Does
 

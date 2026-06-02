@@ -4,7 +4,6 @@ const STORE_KEY = "ksum-qr-store";
 let memoryStore = defaultStore();
 
 function storageConfig() {
-  if (process.env.USE_REDIS_STORAGE !== "true") return {};
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   return { url, token };

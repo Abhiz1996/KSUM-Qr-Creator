@@ -24,7 +24,6 @@ function defaultStore() {
 }
 
 function storageConfig() {
-  if (process.env.USE_REDIS_STORAGE !== "true") return {};
   return {
     url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
