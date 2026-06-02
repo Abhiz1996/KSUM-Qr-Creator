@@ -7,6 +7,7 @@ const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_FILE = path.join(ROOT, "data", "store.json");
+const STORE_KEY = "ksum-qr-store";
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -21,7 +22,46 @@ function defaultStore() {
   return { qrs: [], scans: [] };
 }
 
-function loadStore() {
+function storageConfig() {
+  return {
+    url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+  };
+}
+
+async function redis(command, ...args) {
+  const { url, token } = storageConfig();
+  if (!url || !token) throw new Error("Storage is not configured.");
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify([command, ...args])
+  });
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { error: text || "Storage returned a non-JSON response." };
+  }
+  if (!response.ok || data.error) throw new Error(data.error || "Storage command failed.");
+  return data.result;
+}
+
+async function loadStore() {
+  if (storageConfig().url && storageConfig().token) {
+    const raw = await redis("GET", STORE_KEY);
+    if (!raw) return defaultStore();
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return defaultStore();
+    }
+  }
+
   try {
     return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
   } catch {
@@ -29,7 +69,12 @@ function loadStore() {
   }
 }
 
-function saveStore(store) {
+async function saveStore(store) {
+  if (storageConfig().url && storageConfig().token) {
+    await redis("SET", STORE_KEY, JSON.stringify(store));
+    return;
+  }
+
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
   fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2));
 }
@@ -135,7 +180,7 @@ function buildPayload(qr) {
 }
 
 async function routeApi(req, res, pathname) {
-  const store = loadStore();
+  const store = await loadStore();
 
   if (req.method === "GET" && pathname === "/api/qrs") {
     const qrs = store.qrs.map(qr => {
@@ -150,7 +195,7 @@ async function routeApi(req, res, pathname) {
     if (!input.destination && !input.payload) return send(res, 400, { error: "Destination is required." });
     const qr = normalizeQr(input);
     store.qrs.unshift(qr);
-    saveStore(store);
+    await saveStore(store);
     const enriched = publicQr(qr, req);
     return send(res, 201, { qr: { ...enriched, payload: buildPayload(enriched), analytics: aggregate(qr, store.scans) } });
   }
@@ -162,7 +207,7 @@ async function routeApi(req, res, pathname) {
     if (index === -1) return send(res, 404, { error: "QR not found." });
     const input = await readJson(req);
     store.qrs[index] = normalizeQr({ ...store.qrs[index], ...input, id, createdAt: store.qrs[index].createdAt });
-    saveStore(store);
+    await saveStore(store);
     const enriched = publicQr(store.qrs[index], req);
     return send(res, 200, { qr: { ...enriched, payload: buildPayload(enriched), analytics: aggregate(store.qrs[index], store.scans) } });
   }
@@ -171,15 +216,15 @@ async function routeApi(req, res, pathname) {
     const id = match[1];
     store.qrs = store.qrs.filter(qr => qr.id !== id);
     store.scans = store.scans.filter(scan => scan.qrId !== id);
-    saveStore(store);
+    await saveStore(store);
     return send(res, 200, { ok: true });
   }
 
   send(res, 404, { error: "Not found." });
 }
 
-function redirect(req, res, id) {
-  const store = loadStore();
+async function redirect(req, res, id) {
+  const store = await loadStore();
   const qr = store.qrs.find(item => item.id === id);
   if (!qr) return send(res, 404, "QR code not found.", "text/plain; charset=utf-8");
 
@@ -195,7 +240,7 @@ function redirect(req, res, id) {
     userAgent: req.headers["user-agent"] || "Unknown",
     ...agent
   });
-  saveStore(store);
+  await saveStore(store);
 
   res.writeHead(302, { Location: qr.destination || qr.payload || "/" });
   res.end();
@@ -223,7 +268,7 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     if (url.pathname.startsWith("/api/")) return routeApi(req, res, url.pathname);
     const redirectMatch = url.pathname.match(/^\/r\/([^/]+)$/);
-    if (redirectMatch) return redirect(req, res, redirectMatch[1]);
+    if (redirectMatch) return await redirect(req, res, redirectMatch[1]);
     serveStatic(req, res, url.pathname);
   } catch (error) {
     send(res, 500, { error: error.message || "Server error." });
