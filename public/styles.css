@@ -27,6 +27,10 @@ body.locked {
   grid-template-columns: 1fr;
 }
 
+body.public-page {
+  display: block;
+}
+
 .hidden {
   display: none !important;
 }
@@ -131,6 +135,21 @@ button:hover { border-color: #9aa7ba; }
   border-color: rgba(255,255,255,0.42);
 }
 
+.sidebar-link {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  color: #dce6f4;
+  text-decoration: none;
+  background: rgba(255,255,255,0.08);
+}
+
+.sidebar-link:hover {
+  border-color: rgba(255,255,255,0.42);
+}
+
 .qr-item {
   text-align: left;
   color: #dce6f4;
@@ -161,6 +180,70 @@ button:hover { border-color: #9aa7ba; }
   display: grid;
   grid-template-columns: minmax(340px, 480px) 1fr;
   gap: 24px;
+}
+
+.public-topbar {
+  min-height: 132px;
+  padding: 26px clamp(18px, 4vw, 44px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  color: #fff;
+  background: #172033;
+}
+
+.public-topbar h1 {
+  margin: 8px 0 0;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1;
+}
+
+.admin-link {
+  display: inline-grid;
+  place-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(255,255,255,0.24);
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+
+.public-workspace {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 28px;
+  display: grid;
+  grid-template-columns: minmax(340px, 520px) 1fr;
+  gap: 24px;
+}
+
+.public-composer,
+.public-preview {
+  align-self: start;
+}
+
+.tracking-pill {
+  display: inline-grid;
+  place-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: #0f5132;
+  background: #dff7ea;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.form-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .panel {
@@ -428,11 +511,12 @@ th, td {
 @media (max-width: 1040px) {
   body { grid-template-columns: 1fr; }
   .sidebar { min-height: auto; }
-  .workspace { grid-template-columns: 1fr; }
+  .workspace, .public-workspace { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 680px) {
-  .workspace, .sidebar { padding: 18px; }
+  .workspace, .sidebar, .public-workspace { padding: 18px; }
+  .public-topbar { align-items: flex-start; flex-direction: column; }
   .two, .three, .metrics { grid-template-columns: 1fr; }
   .form-head, .analytics-head, .actions { align-items: stretch; flex-direction: column; }
   .actions button, .download-row button { width: 100%; }

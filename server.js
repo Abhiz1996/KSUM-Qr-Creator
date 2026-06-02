@@ -286,6 +286,32 @@ async function routeApi(req, res, pathname) {
     return send(res, 200, { ok: true });
   }
 
+  if (pathname === "/api/public/qrs") {
+    if (req.method !== "POST") {
+      res.setHeader("Allow", "POST");
+      return send(res, 405, { error: "Method not allowed." });
+    }
+    const input = await readJson(req);
+    if (!input.destination && !input.payload) return send(res, 400, { error: "Destination is required." });
+    const store = await loadStore();
+    const qr = normalizeQr({ ...input, dynamic: true });
+    store.qrs.unshift(qr);
+    await saveStore(store);
+    const enriched = publicQr(qr, req);
+    return send(res, 201, {
+      qr: {
+        id: enriched.id,
+        name: enriched.name,
+        type: enriched.type,
+        destination: enriched.destination,
+        payload: buildPayload(enriched),
+        shortUrl: enriched.shortUrl,
+        style: enriched.style,
+        createdAt: enriched.createdAt
+      }
+    });
+  }
+
   if (!requireAdmin(req, res)) return;
   const store = await loadStore();
 
@@ -372,7 +398,8 @@ function safeHostname(value) {
 }
 
 function serveStatic(req, res, pathname) {
-  const filePath = pathname === "/" ? path.join(PUBLIC_DIR, "index.html") : path.join(PUBLIC_DIR, pathname);
+  const routePath = pathname === "/admin" ? "/admin.html" : pathname;
+  const filePath = routePath === "/" ? path.join(PUBLIC_DIR, "index.html") : path.join(PUBLIC_DIR, routePath);
   if (!filePath.startsWith(PUBLIC_DIR)) return send(res, 403, "Forbidden", "text/plain");
   fs.readFile(filePath, (error, content) => {
     if (error) return send(res, 404, "Not found", "text/plain");
