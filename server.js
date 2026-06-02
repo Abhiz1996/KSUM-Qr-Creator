@@ -153,7 +153,8 @@ function normalizeQr(input) {
 }
 
 function publicQr(qr, req) {
-  const origin = `http://${req.headers.host}`;
+  const proto = req.headers["x-forwarded-proto"] || (process.env.VERCEL ? "https" : "http");
+  const origin = `${proto}://${req.headers.host}`;
   return { ...qr, shortUrl: `${origin}/r/${qr.id}` };
 }
 
