@@ -62,6 +62,8 @@ async function loadStore() {
     }
   }
 
+  if (process.env.VERCEL) return defaultStore();
+
   try {
     return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
   } catch {
@@ -73,6 +75,12 @@ async function saveStore(store) {
   if (storageConfig().url && storageConfig().token) {
     await redis("SET", STORE_KEY, JSON.stringify(store));
     return;
+  }
+
+  if (process.env.VERCEL) {
+    const error = new Error("Storage is not configured. Add Vercel KV or Upstash Redis env vars.");
+    error.code = "NO_STORAGE";
+    throw error;
   }
 
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
@@ -281,7 +289,7 @@ const server = http.createServer(async (req, res) => {
     if (redirectMatch) return await redirect(req, res, redirectMatch[1]);
     serveStatic(req, res, url.pathname);
   } catch (error) {
-    send(res, 500, { error: error.message || "Server error." });
+    send(res, error.code === "NO_STORAGE" ? 503 : 500, { error: error.message || "Server error." });
   }
 });
 
