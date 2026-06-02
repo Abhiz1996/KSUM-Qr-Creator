@@ -23,6 +23,46 @@ body {
   grid-template-columns: 320px 1fr;
 }
 
+body.locked {
+  grid-template-columns: 1fr;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--wash);
+}
+
+.auth-panel {
+  width: min(420px, 100%);
+  padding: 26px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.auth-panel h1 {
+  margin: 8px 0 0;
+  font-size: 28px;
+}
+
+.auth-error {
+  min-height: 18px;
+  margin: 0;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 button, input, textarea, select {
   font: inherit;
 }
@@ -78,6 +118,17 @@ button:hover { border-color: #9aa7ba; }
   display: grid;
   gap: 10px;
   overflow: auto;
+}
+
+.logout-button {
+  margin-top: auto;
+  color: #dce6f4;
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.logout-button:hover {
+  border-color: rgba(255,255,255,0.42);
 }
 
 .qr-item {

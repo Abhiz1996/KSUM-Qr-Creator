@@ -1,7 +1,9 @@
 const { loadStore, saveStore, send, sendError, readBody, normalizeQr, withAnalytics } = require("../_lib/store");
+const { requireAdmin } = require("../_lib/auth");
 
 module.exports = async function handler(req, res) {
   try {
+    if (!requireAdmin(req, res, send)) return;
     const { id } = req.query;
     const store = await loadStore();
     const index = store.qrs.findIndex(qr => qr.id === id);

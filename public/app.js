@@ -2,13 +2,19 @@ const state = {
   qrs: [],
   selectedId: null,
   renderedCanvas: null,
-  staticMode: false
+  staticMode: false,
+  authenticated: false
 };
 
 const $ = selector => document.querySelector(selector);
 const LOCAL_STORE_KEY = "ksum-qr-creator-qrs";
 
 const els = {
+  authGate: $("#authGate"),
+  loginForm: $("#loginForm"),
+  adminPassword: $("#adminPassword"),
+  loginError: $("#loginError"),
+  logoutButton: $("#logoutButton"),
   list: $("#qrList"),
   form: $("#qrForm"),
   name: $("#name"),
@@ -32,6 +38,57 @@ const els = {
   scanChart: $("#scanChart"),
   recentScans: $("#recentScans")
 };
+
+async function apiFetch(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: "same-origin",
+    ...options,
+    headers: {
+      ...(options.headers || {})
+    }
+  });
+  if (response.status === 401) {
+    showLogin("Log in to manage QR codes and analytics.");
+  }
+  return response;
+}
+
+async function checkSession() {
+  try {
+    const response = await apiFetch("/api/session");
+    const data = await response.json();
+    state.authenticated = Boolean(data.authenticated);
+    if (!data.configured) {
+      showLogin("Admin password is not configured in Vercel.");
+      return false;
+    }
+    if (!state.authenticated) {
+      showLogin();
+      return false;
+    }
+    hideLogin();
+    return true;
+  } catch {
+    state.staticMode = true;
+    hideLogin();
+    return true;
+  }
+}
+
+function showLogin(message = "") {
+  state.authenticated = false;
+  document.body.classList.add("locked");
+  els.authGate.classList.remove("hidden");
+  els.loginError.textContent = message;
+  setTimeout(() => els.adminPassword.focus(), 0);
+}
+
+function hideLogin() {
+  document.body.classList.remove("locked");
+  els.authGate.classList.add("hidden");
+  els.loginError.textContent = "";
+  els.adminPassword.value = "";
+}
 
 function currentForm() {
   const destination = normalizeDestination(els.type.value, els.destination.value.trim());
@@ -86,7 +143,8 @@ function selectedQr() {
 
 async function loadQrs() {
   try {
-    const response = await fetch("/api/qrs");
+    const response = await apiFetch("/api/qrs");
+    if (response.status === 401) return;
     if (!response.ok) throw new Error("API unavailable");
     const data = await response.json();
     state.staticMode = false;
@@ -301,11 +359,12 @@ async function saveQr(event) {
   const method = state.selectedId ? "PUT" : "POST";
   const url = state.selectedId ? `/api/qrs/${state.selectedId}` : "/api/qrs";
   try {
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(qr)
     });
+    if (response.status === 401) return;
     if (!response.ok) throw new Error("Save failed");
     const data = await response.json();
     state.selectedId = data.qr.id;
@@ -326,10 +385,37 @@ async function deleteQr() {
     renderAll();
     return;
   }
-  await fetch(`/api/qrs/${state.selectedId}`, { method: "DELETE" });
+  const response = await apiFetch(`/api/qrs/${state.selectedId}`, { method: "DELETE" });
+  if (response.status === 401) return;
   state.selectedId = null;
   fillForm(null);
   await loadQrs();
+}
+
+async function login(event) {
+  event.preventDefault();
+  els.loginError.textContent = "";
+  const response = await apiFetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: els.adminPassword.value })
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    els.loginError.textContent = data.error || "Could not log in.";
+    return;
+  }
+  state.authenticated = true;
+  hideLogin();
+  await loadQrs();
+}
+
+async function logout() {
+  await apiFetch("/api/logout", { method: "POST" });
+  state.qrs = [];
+  state.selectedId = null;
+  renderAll();
+  showLogin("Logged out.");
 }
 
 function downloadPng() {
@@ -369,6 +455,8 @@ function buildSvg(payload, style) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}"><rect width="100%" height="100%" fill="${style.background}"/><path d="${paths}" fill="${style.foreground}"/></svg>`;
 }
 
+els.loginForm.addEventListener("submit", login);
+els.logoutButton.addEventListener("click", logout);
 els.form.addEventListener("submit", saveQr);
 $("#deleteQr").addEventListener("click", deleteQr);
 $("#newQr").addEventListener("click", () => {
@@ -381,4 +469,6 @@ $("#downloadPng").addEventListener("click", downloadPng);
 $("#downloadSvg").addEventListener("click", downloadSvg);
 ["input", "change"].forEach(eventName => els.form.addEventListener(eventName, () => renderQr(currentForm())));
 
-loadQrs();
+checkSession().then(ok => {
+  if (ok) loadQrs();
+});

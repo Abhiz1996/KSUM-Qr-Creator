@@ -7,12 +7,28 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <section class="auth-gate hidden" id="authGate" aria-label="Admin login">
+      <form class="auth-panel" id="loginForm">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h1>QR Studio Login</h1>
+        </div>
+        <label>
+          Password
+          <input id="adminPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <p class="auth-error" id="loginError"></p>
+        <button type="submit" class="primary">Log in</button>
+      </form>
+    </section>
+
     <aside class="sidebar">
       <div>
         <p class="eyebrow">QR Studio</p>
         <h1>Generate, style, and track every scan.</h1>
       </div>
       <nav class="qr-list" id="qrList" aria-label="Saved QR codes"></nav>
+      <button class="logout-button" id="logoutButton" type="button">Log out</button>
     </aside>
 
     <main class="workspace">

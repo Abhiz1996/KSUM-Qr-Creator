@@ -8,6 +8,8 @@ const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_FILE = path.join(ROOT, "data", "store.json");
 const STORE_KEY = "ksum-qr-store";
+const AUTH_COOKIE = "ksum_admin";
+const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 let memoryStore = defaultStore();
 
 const MIME = {
@@ -113,6 +115,79 @@ function readJson(req) {
   });
 }
 
+function adminPassword() {
+  return process.env.ADMIN_PASSWORD || "";
+}
+
+function authSecret() {
+  return process.env.ADMIN_SECRET || adminPassword();
+}
+
+function sign(value) {
+  return crypto.createHmac("sha256", authSecret()).update(value).digest("base64url");
+}
+
+function parseCookies(req) {
+  return String(req.headers.cookie || "").split(";").reduce((cookies, part) => {
+    const index = part.indexOf("=");
+    if (index === -1) return cookies;
+    cookies[part.slice(0, index).trim()] = decodeURIComponent(part.slice(index + 1).trim());
+    return cookies;
+  }, {});
+}
+
+function createSessionToken() {
+  const encoded = Buffer.from(JSON.stringify({ exp: Date.now() + SESSION_MS })).toString("base64url");
+  return `${encoded}.${sign(encoded)}`;
+}
+
+function verifySession(token) {
+  if (!adminPassword() || !authSecret() || !token) return false;
+  const [encoded, signature] = token.split(".");
+  if (!encoded || !signature) return false;
+  const expected = sign(encoded);
+  const providedBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (providedBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(providedBuffer, expectedBuffer)) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+    return Number(payload.exp) > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function isAuthenticated(req) {
+  return verifySession(parseCookies(req)[AUTH_COOKIE]);
+}
+
+function cookieAttributes(req, maxAge = Math.floor(SESSION_MS / 1000)) {
+  const secure = req.headers["x-forwarded-proto"] === "https" || Boolean(process.env.VERCEL);
+  return `Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure ? "; Secure" : ""}`;
+}
+
+function setSessionCookie(req, res) {
+  res.setHeader("Set-Cookie", `${AUTH_COOKIE}=${encodeURIComponent(createSessionToken())}; ${cookieAttributes(req)}`);
+}
+
+function clearSessionCookie(req, res) {
+  res.setHeader("Set-Cookie", `${AUTH_COOKIE}=; ${cookieAttributes(req, 0)}`);
+}
+
+function passwordMatches(value) {
+  const password = adminPassword();
+  if (!password) return false;
+  const provided = Buffer.from(String(value || ""));
+  const expected = Buffer.from(password);
+  return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+}
+
+function requireAdmin(req, res) {
+  if (isAuthenticated(req)) return true;
+  send(res, 401, { error: "Authentication required." });
+  return false;
+}
+
 function clientIp(req) {
   const forwarded = req.headers["x-forwarded-for"];
   return String(forwarded || req.socket.remoteAddress || "unknown").split(",")[0].trim();
@@ -189,6 +264,29 @@ function buildPayload(qr) {
 }
 
 async function routeApi(req, res, pathname) {
+  if (pathname === "/api/session") {
+    return send(res, 200, {
+      authenticated: isAuthenticated(req),
+      configured: Boolean(adminPassword())
+    });
+  }
+
+  if (pathname === "/api/login") {
+    if (req.method !== "POST") return send(res, 405, { error: "Method not allowed." });
+    if (!adminPassword()) return send(res, 503, { error: "Admin password is not configured." });
+    const input = await readJson(req);
+    if (!passwordMatches(input.password)) return send(res, 401, { error: "Invalid password." });
+    setSessionCookie(req, res);
+    return send(res, 200, { ok: true });
+  }
+
+  if (pathname === "/api/logout") {
+    if (req.method !== "POST") return send(res, 405, { error: "Method not allowed." });
+    clearSessionCookie(req, res);
+    return send(res, 200, { ok: true });
+  }
+
+  if (!requireAdmin(req, res)) return;
   const store = await loadStore();
 
   if (req.method === "GET" && pathname === "/api/health") {
