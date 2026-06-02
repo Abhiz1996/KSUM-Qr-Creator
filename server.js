@@ -182,6 +182,16 @@ function buildPayload(qr) {
 async function routeApi(req, res, pathname) {
   const store = await loadStore();
 
+  if (req.method === "GET" && pathname === "/api/health") {
+    await saveStore(store);
+    return send(res, 200, {
+      ok: true,
+      storage: storageConfig().url && storageConfig().token ? "redis" : "file",
+      qrs: store.qrs.length,
+      scans: store.scans.length
+    });
+  }
+
   if (req.method === "GET" && pathname === "/api/qrs") {
     const qrs = store.qrs.map(qr => {
       const enriched = publicQr(qr, req);
