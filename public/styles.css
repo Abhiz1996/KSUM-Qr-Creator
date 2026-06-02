@@ -765,3 +765,323 @@ tbody tr:hover {
   .form-head, .analytics-head, .actions { align-items: stretch; flex-direction: column; }
   .actions button, .download-row button { width: 100%; }
 }
+
+/* Professional admin theme */
+body.admin-page {
+  grid-template-columns: 304px 1fr;
+  background: #f4f7fb;
+}
+
+body.admin-page.locked {
+  grid-template-columns: 1fr;
+}
+
+body.admin-page .auth-gate {
+  background:
+    linear-gradient(135deg, rgba(15,118,110,0.08), rgba(23,32,51,0.08)),
+    #f4f7fb;
+}
+
+body.admin-page .auth-panel {
+  width: min(430px, 100%);
+  padding: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+}
+
+.auth-logo {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: #0f766e;
+  font-weight: 900;
+}
+
+body.admin-page .auth-panel h1 {
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+body.admin-page .admin-sidebar {
+  color: #e5edf7;
+  background: #111827;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+body.admin-page .admin-profile {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.admin-page .avatar {
+  background: #0f766e;
+}
+
+body.admin-page .admin-profile h1 {
+  color: #fff;
+  font-size: 30px;
+}
+
+body.admin-page .profile-copy,
+body.admin-page .qr-item small,
+body.admin-page .sidebar-section-head {
+  color: #a8b3c4;
+}
+
+body.admin-page .sidebar-stats article {
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  box-shadow: none;
+}
+
+body.admin-page .sidebar-stats strong {
+  color: #fff;
+  font-size: 26px;
+}
+
+body.admin-page .sidebar-stats span {
+  color: #a8b3c4;
+  text-transform: none;
+}
+
+body.admin-page .sidebar-section-head button,
+body.admin-page .admin-sidebar .sidebar-link,
+body.admin-page .admin-sidebar .logout-button {
+  color: #e5edf7;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  box-shadow: none;
+}
+
+body.admin-page .sidebar-section-head button:hover,
+body.admin-page .admin-sidebar .sidebar-link:hover,
+body.admin-page .admin-sidebar .logout-button:hover {
+  transform: none;
+  border-color: rgba(255,255,255,0.32);
+  box-shadow: none;
+}
+
+body.admin-page .qr-item {
+  grid-template-columns: 38px 1fr auto;
+  padding: 10px;
+  color: #e5edf7;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  box-shadow: none;
+}
+
+body.admin-page .qr-item.active {
+  color: #fff;
+  border-color: rgba(45,212,191,0.8);
+  background: rgba(15,118,110,0.36);
+  transform: none;
+  box-shadow: none;
+}
+
+body.admin-page .qr-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #0f766e;
+}
+
+body.admin-page .workspace {
+  grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
+  gap: 22px;
+}
+
+body.admin-page .preview-zone {
+  display: contents;
+}
+
+body.admin-page .analytics {
+  grid-column: 1 / -1;
+}
+
+body.admin-page .panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 16px 45px rgba(15, 23, 42, 0.08);
+}
+
+body.admin-page .composer,
+body.admin-page .preview-card,
+body.admin-page .analytics {
+  background: #fff;
+}
+
+body.admin-page .preview-card {
+  background: #fff;
+}
+
+body.admin-page button {
+  font-weight: 700;
+}
+
+body.admin-page .primary {
+  color: #fff;
+  background: #0f766e;
+  border: 1px solid #0f766e;
+  box-shadow: none;
+}
+
+body.admin-page .primary:hover {
+  transform: none;
+  box-shadow: none;
+  background: #115e59;
+}
+
+body.admin-page input,
+body.admin-page textarea,
+body.admin-page select {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+}
+
+body.admin-page input:focus,
+body.admin-page textarea:focus,
+body.admin-page select:focus {
+  outline: 3px solid rgba(15,118,110,0.14);
+  border-color: #0f766e;
+}
+
+body.admin-page .analytics {
+  padding: 22px;
+}
+
+.analytics-subtitle {
+  margin: 6px 0 0;
+  color: #647084;
+  font-size: 13px;
+}
+
+body.admin-page .analytics-tabs {
+  gap: 8px;
+  margin: 18px 0 14px;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+body.admin-page .analytics-tab {
+  min-width: 132px;
+  height: 40px;
+  border: 0;
+  border-radius: 9px;
+  color: #647084;
+  background: transparent;
+}
+
+body.admin-page .analytics-tab strong {
+  min-width: 24px;
+  height: 22px;
+  color: #0f766e;
+  background: rgba(15,118,110,0.12);
+}
+
+body.admin-page .analytics-tab.active {
+  color: #172033;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+body.admin-page .analytics-title {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #172033;
+  background: transparent;
+  font-size: 15px;
+}
+
+body.admin-page .metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+body.admin-page .metrics article {
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+body.admin-page .metrics strong {
+  margin-top: 10px;
+  color: #172033;
+  font-size: 30px;
+}
+
+body.admin-page .primary-metric {
+  background: #ecfdf9 !important;
+  border-color: #99f6e4;
+}
+
+body.admin-page .metric-card span,
+body.admin-page .section-label {
+  color: #647084;
+  font-size: 12px;
+  text-transform: none;
+}
+
+body.admin-page #lastScan {
+  font-size: 15px;
+}
+
+body.admin-page .chart {
+  height: 140px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  gap: 8px;
+  padding: 18px 14px 14px;
+  background: #f8fafc;
+}
+
+body.admin-page .bar {
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: #0f766e;
+}
+
+body.admin-page .table-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+body.admin-page th {
+  color: #647084;
+  background: #f8fafc;
+  font-size: 12px;
+  text-transform: none;
+}
+
+body.admin-page td {
+  color: #172033;
+}
+
+@media (max-width: 1040px) {
+  body.admin-page,
+  body.admin-page .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  body.admin-page .metrics {
+    grid-template-columns: 1fr;
+  }
+}
