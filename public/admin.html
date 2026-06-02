@@ -6,7 +6,7 @@
     <title>QR Analytics Admin</title>
     <link rel="stylesheet" href="styles.css">
   </head>
-  <body>
+  <body class="admin-page">
     <section class="auth-gate hidden" id="authGate" aria-label="Admin login">
       <form class="auth-panel" id="loginForm">
         <div>
@@ -22,10 +22,26 @@
       </form>
     </section>
 
-    <aside class="sidebar">
-      <div>
+    <aside class="sidebar admin-sidebar">
+      <div class="admin-profile">
+        <div class="avatar">K</div>
         <p class="eyebrow">QR Studio</p>
-        <h1>Manage QR codes and scan analytics.</h1>
+        <h1>KSUM QR Admin</h1>
+        <p class="profile-copy">Manage links, watch scan activity, and keep every public QR campaign organized.</p>
+      </div>
+      <div class="sidebar-stats" aria-label="Admin summary">
+        <article>
+          <strong id="adminQrCount">0</strong>
+          <span>QR codes</span>
+        </article>
+        <article>
+          <strong id="adminScanCount">0</strong>
+          <span>Total scans</span>
+        </article>
+      </div>
+      <div class="sidebar-section-head">
+        <span>Campaign links</span>
+        <button id="quickNewQr" type="button">New</button>
       </div>
       <nav class="qr-list" id="qrList" aria-label="Saved QR codes"></nav>
       <a class="sidebar-link" href="/">Public creator</a>
@@ -137,19 +153,20 @@
           <div class="analytics-head">
             <div>
               <p class="eyebrow">Analytics</p>
-              <h2>Scan data</h2>
+              <h2>Performance</h2>
             </div>
             <button id="refresh">Refresh</button>
           </div>
           <div class="analytics-tabs" id="analyticsTabs" role="tablist" aria-label="QR analytics"></div>
           <p id="analyticsTitle" class="analytics-title">No QR selected</p>
           <div class="metrics">
-            <article><strong id="totalScans">0</strong><span>Total scans</span></article>
-            <article><strong id="uniqueVisitors">0</strong><span>Unique visitors</span></article>
-            <article><strong id="lastScan">Never</strong><span>Last scan</span></article>
+            <article class="metric-card primary-metric"><span>Total scans</span><strong id="totalScans">0</strong></article>
+            <article class="metric-card"><span>Unique visitors</span><strong id="uniqueVisitors">0</strong></article>
+            <article class="metric-card"><span>Last scan</span><strong id="lastScan">Never</strong></article>
           </div>
+          <div class="section-label">Daily scan trend</div>
           <div class="chart" id="scanChart" aria-label="Scans by day"></div>
-          <h3>Recent scans</h3>
+          <h3>Recent activity</h3>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Time</th><th>Device</th><th>Browser</th><th>OS</th></tr></thead>

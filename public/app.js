@@ -15,6 +15,9 @@ const els = {
   adminPassword: $("#adminPassword"),
   loginError: $("#loginError"),
   logoutButton: $("#logoutButton"),
+  quickNewQr: $("#quickNewQr"),
+  adminQrCount: $("#adminQrCount"),
+  adminScanCount: $("#adminScanCount"),
   list: $("#qrList"),
   form: $("#qrForm"),
   name: $("#name"),
@@ -185,6 +188,7 @@ function enrichLocalQr(qr) {
 }
 
 function renderAll() {
+  renderAdminSummary();
   renderList();
   renderAnalyticsTabs();
   const qr = selectedQr();
@@ -193,12 +197,25 @@ function renderAll() {
   renderAnalytics(qr);
 }
 
+function renderAdminSummary() {
+  const scanCount = state.qrs.reduce((total, qr) => total + (qr.analytics?.totalScans || 0), 0);
+  if (els.adminQrCount) els.adminQrCount.textContent = state.qrs.length;
+  if (els.adminScanCount) els.adminScanCount.textContent = scanCount;
+}
+
 function renderList() {
   els.list.innerHTML = state.qrs.length ? "" : `<p class="short-url">No QR codes yet.</p>`;
   state.qrs.forEach(qr => {
     const button = document.createElement("button");
     button.className = `qr-item ${qr.id === state.selectedId ? "active" : ""}`;
-    button.innerHTML = `<strong>${escapeHtml(qr.name)}</strong><span>${qr.analytics.totalScans} scans · ${qr.type}</span>`;
+    button.innerHTML = `
+      <span class="qr-icon">${escapeHtml(qr.name.slice(0, 1) || "Q")}</span>
+      <span class="qr-copy">
+        <strong>${escapeHtml(qr.name)}</strong>
+        <small>${qr.analytics.totalScans} scans · ${qr.type}</small>
+      </span>
+      <span class="qr-arrow">›</span>
+    `;
     button.addEventListener("click", () => {
       state.selectedId = qr.id;
       renderAll();
@@ -459,11 +476,14 @@ els.loginForm.addEventListener("submit", login);
 els.logoutButton.addEventListener("click", logout);
 els.form.addEventListener("submit", saveQr);
 $("#deleteQr").addEventListener("click", deleteQr);
-$("#newQr").addEventListener("click", () => {
+function startNewQr() {
   state.selectedId = null;
   fillForm(null);
   renderAll();
-});
+}
+
+$("#newQr").addEventListener("click", startNewQr);
+els.quickNewQr?.addEventListener("click", startNewQr);
 $("#refresh").addEventListener("click", loadQrs);
 $("#downloadPng").addEventListener("click", downloadPng);
 $("#downloadSvg").addEventListener("click", downloadSvg);
