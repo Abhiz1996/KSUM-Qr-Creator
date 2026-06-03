@@ -154,26 +154,49 @@
           <div class="analytics-head">
             <div>
               <p class="eyebrow">Analytics</p>
-              <h2>Performance</h2>
-              <p class="analytics-subtitle">Simple scan overview for the selected QR code.</p>
+              <h2>Dashboard</h2>
             </div>
-            <button id="refresh">Refresh</button>
+            <div class="analytics-actions">
+              <button class="period-button" type="button">Monthly</button>
+              <button id="refresh">Refresh</button>
+            </div>
           </div>
           <div class="analytics-tabs" id="analyticsTabs" role="tablist" aria-label="QR analytics"></div>
           <p id="analyticsTitle" class="analytics-title">No QR selected</p>
-          <div class="metrics">
-            <article class="metric-card primary-metric"><span>Total scans</span><strong id="totalScans">0</strong></article>
-            <article class="metric-card"><span>Unique visitors</span><strong id="uniqueVisitors">0</strong></article>
-            <article class="metric-card"><span>Last scan</span><strong id="lastScan">Never</strong></article>
+          <div class="metrics dashboard-metrics">
+            <article class="metric-card primary-metric">
+              <span class="metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
+              </span>
+              <span>Total scans</span>
+              <strong id="totalScans">0</strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+              </span>
+              <span>Unique visitors</span>
+              <strong id="uniqueVisitors">0</strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+              </span>
+              <span>Last scan</span>
+              <strong id="lastScan">Never</strong>
+            </article>
           </div>
-          <div class="section-label">Daily scan trend</div>
-          <div class="chart" id="scanChart" aria-label="Scans by day"></div>
-          <h3>Recent activity</h3>
-          <div class="table-wrap">
+          <div class="activity-card">
+            <div class="activity-head">
+              <h3>Recent activity</h3>
+              <span>Latest scans</span>
+            </div>
+            <div class="table-wrap">
             <table>
               <thead><tr><th>Time</th><th>Device</th><th>Browser</th><th>OS</th></tr></thead>
               <tbody id="recentScans"></tbody>
             </table>
+            </div>
           </div>
         </div>
       </section>

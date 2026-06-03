@@ -38,7 +38,6 @@ const els = {
   totalScans: $("#totalScans"),
   uniqueVisitors: $("#uniqueVisitors"),
   lastScan: $("#lastScan"),
-  scanChart: $("#scanChart"),
   recentScans: $("#recentScans")
 };
 
@@ -325,7 +324,6 @@ function renderAnalytics(qr) {
   els.totalScans.textContent = analytics?.totalScans || 0;
   els.uniqueVisitors.textContent = analytics?.uniqueVisitors || 0;
   els.lastScan.textContent = analytics?.lastScanAt ? new Date(analytics.lastScanAt).toLocaleString() : "Never";
-  renderChart(analytics?.byDay || {});
   els.recentScans.innerHTML = (analytics?.recentScans || []).map(scan => `
     <tr>
       <td>${new Date(scan.time).toLocaleString()}</td>
@@ -334,20 +332,6 @@ function renderAnalytics(qr) {
       <td>${escapeHtml(scan.os)}</td>
     </tr>
   `).join("") || `<tr><td colspan="4">No scans recorded yet.</td></tr>`;
-}
-
-function renderChart(byDay) {
-  const entries = Object.entries(byDay).slice(-14);
-  const max = Math.max(1, ...entries.map(([, value]) => value));
-  els.scanChart.innerHTML = entries.length ? "" : `<p class="short-url">Scans will appear here by day.</p>`;
-  entries.forEach(([day, value]) => {
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.style.height = `${Math.max(8, (value / max) * 100)}%`;
-    bar.title = `${day}: ${value} scans`;
-    bar.innerHTML = `<span>${value}</span>`;
-    els.scanChart.appendChild(bar);
-  });
 }
 
 function escapeHtml(value = "") {
