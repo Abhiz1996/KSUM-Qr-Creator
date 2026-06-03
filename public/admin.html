@@ -185,6 +185,20 @@
               <span>Last scan</span>
               <strong id="lastScan">Never</strong>
             </article>
+            <article class="metric-card">
+              <span class="metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 21s7-4.4 7-11a7 7 0 0 0-14 0c0 6.6 7 11 7 11z"/><path d="M12 10.5h.01"/></svg>
+              </span>
+              <span>Top location</span>
+              <strong id="topLocation">Unknown</strong>
+            </article>
+          </div>
+          <div class="activity-card location-card">
+            <div class="activity-head">
+              <h3>Locations</h3>
+              <span>Approximate by IP</span>
+            </div>
+            <div class="location-list" id="locationRows"></div>
           </div>
           <div class="activity-card">
             <div class="activity-head">
@@ -193,7 +207,7 @@
             </div>
             <div class="table-wrap">
             <table>
-              <thead><tr><th>Time</th><th>Device</th><th>Browser</th><th>OS</th></tr></thead>
+              <thead><tr><th>Time</th><th>Location</th><th>Device</th><th>Browser</th><th>OS</th></tr></thead>
               <tbody id="recentScans"></tbody>
             </table>
             </div>

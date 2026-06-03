@@ -38,6 +38,8 @@ const els = {
   totalScans: $("#totalScans"),
   uniqueVisitors: $("#uniqueVisitors"),
   lastScan: $("#lastScan"),
+  topLocation: $("#topLocation"),
+  locationRows: $("#locationRows"),
   recentScans: $("#recentScans")
 };
 
@@ -180,6 +182,8 @@ function enrichLocalQr(qr) {
       totalScans: 0,
       uniqueVisitors: 0,
       lastScanAt: null,
+      topLocation: "Unknown",
+      locations: [],
       byDay: {},
       recentScans: []
     }
@@ -324,14 +328,26 @@ function renderAnalytics(qr) {
   els.totalScans.textContent = analytics?.totalScans || 0;
   els.uniqueVisitors.textContent = analytics?.uniqueVisitors || 0;
   els.lastScan.textContent = analytics?.lastScanAt ? new Date(analytics.lastScanAt).toLocaleString() : "Never";
+  els.topLocation.textContent = analytics?.topLocation || "Unknown";
+  renderLocations(analytics?.locations || []);
   els.recentScans.innerHTML = (analytics?.recentScans || []).map(scan => `
     <tr>
       <td>${new Date(scan.time).toLocaleString()}</td>
+      <td>${escapeHtml(scan.location?.label || "Unknown")}</td>
       <td>${escapeHtml(scan.device)}</td>
       <td>${escapeHtml(scan.browser)}</td>
       <td>${escapeHtml(scan.os)}</td>
     </tr>
-  `).join("") || `<tr><td colspan="4">No scans recorded yet.</td></tr>`;
+  `).join("") || `<tr><td colspan="5">No scans recorded yet.</td></tr>`;
+}
+
+function renderLocations(locations) {
+  els.locationRows.innerHTML = locations.length ? locations.slice(0, 6).map(location => `
+    <article class="location-row">
+      <span>${escapeHtml(location.label)}</span>
+      <strong>${location.count}</strong>
+    </article>
+  `).join("") : `<p class="empty-locations">No location data yet.</p>`;
 }
 
 function escapeHtml(value = "") {

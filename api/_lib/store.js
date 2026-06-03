@@ -134,6 +134,13 @@ function publicQr(qr, req) {
 function aggregate(qr, scans) {
   const qrScans = scans.filter(scan => scan.qrId === qr.id);
   const uniqueVisitors = new Set(qrScans.map(scan => scan.ipHash)).size;
+  const topLocations = Object.entries(qrScans.reduce((acc, scan) => {
+    const label = scan.location?.label || "Unknown";
+    acc[label] = (acc[label] || 0) + 1;
+    return acc;
+  }, {}))
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
   const byDay = qrScans.reduce((acc, scan) => {
     const day = scan.time.slice(0, 10);
     acc[day] = (acc[day] || 0) + 1;
@@ -143,6 +150,8 @@ function aggregate(qr, scans) {
     totalScans: qrScans.length,
     uniqueVisitors,
     lastScanAt: qrScans[0]?.time || null,
+    topLocation: topLocations[0]?.label || "Unknown",
+    locations: topLocations,
     byDay,
     recentScans: qrScans.slice(0, 25)
   };
@@ -180,6 +189,34 @@ function referrerLabel(value) {
   }
 }
 
+function decodeHeader(value) {
+  if (!value) return "";
+  try {
+    return decodeURIComponent(String(value));
+  } catch {
+    return String(value);
+  }
+}
+
+function scanLocation(req) {
+  const city = decodeHeader(req.headers["x-vercel-ip-city"]);
+  const region = decodeHeader(req.headers["x-vercel-ip-country-region"]);
+  const country = decodeHeader(req.headers["x-vercel-ip-country"]);
+  const latitude = decodeHeader(req.headers["x-vercel-ip-latitude"]);
+  const longitude = decodeHeader(req.headers["x-vercel-ip-longitude"]);
+  const postalCode = decodeHeader(req.headers["x-vercel-ip-postal-code"]);
+  const parts = [city, region, country].filter(Boolean);
+  return {
+    city: city || "Unknown",
+    region: region || "",
+    country: country || "",
+    latitude: latitude || "",
+    longitude: longitude || "",
+    postalCode: postalCode || "",
+    label: parts.length ? parts.join(", ") : "Unknown"
+  };
+}
+
 function scanRecord(req, qrId) {
   const ip = clientIp(req);
   return {
@@ -189,6 +226,7 @@ function scanRecord(req, qrId) {
     ipHash: crypto.createHash("sha256").update(ip).digest("hex").slice(0, 16),
     referrerLabel: referrerLabel(req.headers.referer || ""),
     userAgent: req.headers["user-agent"] || "Unknown",
+    location: scanLocation(req),
     ...parseAgent(req.headers["user-agent"] || "")
   };
 }

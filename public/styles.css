@@ -1028,7 +1028,7 @@ body.admin-page .analytics-title {
 }
 
 body.admin-page .metrics {
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
   gap: 12px;
 }
 
@@ -1096,6 +1096,11 @@ body.admin-page #lastScan {
   line-height: 1.25;
 }
 
+body.admin-page #topLocation {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
 body.admin-page .chart {
   height: 140px;
   border: 1px solid #e2e8f0;
@@ -1118,6 +1123,54 @@ body.admin-page .table-wrap {
 
 .activity-card {
   margin-top: 18px;
+}
+
+.location-card {
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.location-list {
+  display: grid;
+  gap: 10px;
+}
+
+.location-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid #edf1f6;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.location-row span {
+  min-width: 0;
+  overflow: hidden;
+  color: #172033;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-row strong {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 28px;
+  border-radius: 999px;
+  color: #0f766e;
+  background: rgba(15,118,110,0.12);
+  font-size: 14px;
+}
+
+.empty-locations {
+  margin: 0;
+  color: #647084;
+  font-size: 13px;
 }
 
 .activity-head {
