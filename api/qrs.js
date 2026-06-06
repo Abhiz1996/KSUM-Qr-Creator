@@ -1,4 +1,4 @@
-const { loadStore, saveStore, send, sendError, readBody, normalizeQr, withAnalytics } = require("./_lib/store");
+const { loadStore, saveStore, send, sendError, readBody, normalizeQr, withAnalytics, withAnalyticsList } = require("./_lib/store");
 const { requireAdmin } = require("./_lib/auth");
 
 module.exports = async function handler(req, res) {
@@ -7,7 +7,7 @@ module.exports = async function handler(req, res) {
     const store = await loadStore();
 
     if (req.method === "GET") {
-      return send(res, 200, { qrs: store.qrs.map(qr => withAnalytics(qr, req, store.scans)) });
+      return send(res, 200, { qrs: withAnalyticsList(store.qrs, req, store.scans) });
     }
 
     if (req.method === "POST") {

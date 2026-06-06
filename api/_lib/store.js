@@ -132,7 +132,7 @@ function publicQr(qr, req) {
 }
 
 function aggregate(qr, scans) {
-  const qrScans = scans.filter(scan => scan.qrId === qr.id);
+  const qrScans = Array.isArray(scans) ? scans.filter(scan => scan.qrId === qr.id) : scans[qr.id] || [];
   const uniqueVisitors = new Set(qrScans.map(scan => scan.ipHash)).size;
   const topLocations = Object.entries(qrScans.reduce((acc, scan) => {
     const label = scan.location?.label || "Unknown";
@@ -165,6 +165,19 @@ function buildPayload(qr) {
 function withAnalytics(qr, req, scans) {
   const enriched = publicQr(qr, req);
   return { ...enriched, payload: buildPayload(enriched), analytics: aggregate(qr, scans) };
+}
+
+function groupScansByQr(scans) {
+  return scans.reduce((groups, scan) => {
+    if (!groups[scan.qrId]) groups[scan.qrId] = [];
+    groups[scan.qrId].push(scan);
+    return groups;
+  }, {});
+}
+
+function withAnalyticsList(qrs, req, scans) {
+  const groupedScans = groupScansByQr(scans);
+  return qrs.map(qr => withAnalytics(qr, req, groupedScans));
 }
 
 function clientIp(req) {
@@ -240,5 +253,6 @@ module.exports = {
   readBody,
   normalizeQr,
   withAnalytics,
+  withAnalyticsList,
   scanRecord
 };

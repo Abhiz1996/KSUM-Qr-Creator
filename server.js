@@ -233,7 +233,7 @@ function publicQr(qr, req) {
 }
 
 function aggregate(qr, scans) {
-  const qrScans = scans.filter(scan => scan.qrId === qr.id);
+  const qrScans = Array.isArray(scans) ? scans.filter(scan => scan.qrId === qr.id) : scans[qr.id] || [];
   const uniqueVisitors = new Set(qrScans.map(scan => scan.ipHash)).size;
   const topLocations = Object.entries(qrScans.reduce((acc, scan) => {
     const label = scan.location?.label || "Unknown";
@@ -265,6 +265,14 @@ function aggregate(qr, scans) {
     referrers: bucket("referrerLabel"),
     recentScans: qrScans.slice(0, 25)
   };
+}
+
+function groupScansByQr(scans) {
+  return scans.reduce((groups, scan) => {
+    if (!groups[scan.qrId]) groups[scan.qrId] = [];
+    groups[scan.qrId].push(scan);
+    return groups;
+  }, {});
 }
 
 function decodeHeader(value) {
@@ -363,9 +371,10 @@ async function routeApi(req, res, pathname) {
   }
 
   if (req.method === "GET" && pathname === "/api/qrs") {
+    const groupedScans = groupScansByQr(store.scans);
     const qrs = store.qrs.map(qr => {
       const enriched = publicQr(qr, req);
-      return { ...enriched, payload: buildPayload(enriched), analytics: aggregate(qr, store.scans) };
+      return { ...enriched, payload: buildPayload(enriched), analytics: aggregate(qr, groupedScans) };
     });
     return send(res, 200, { qrs });
   }

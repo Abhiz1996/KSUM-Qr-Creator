@@ -8,6 +8,7 @@ const state = {
 
 const $ = selector => document.querySelector(selector);
 const LOCAL_STORE_KEY = "ksum-qr-creator-qrs";
+const ADMIN_CACHE_KEY = "ksum-qr-admin-cache";
 
 const els = {
   authGate: $("#authGate"),
@@ -57,25 +58,25 @@ async function apiFetch(url, options = {}) {
   return response;
 }
 
-async function checkSession() {
+function hydrateFromCache() {
   try {
-    const response = await apiFetch("/api/session");
-    const data = await response.json();
-    state.authenticated = Boolean(data.authenticated);
-    if (!data.configured) {
-      showLogin("Admin password is not configured in Vercel.");
-      return false;
-    }
-    if (!state.authenticated) {
-      showLogin();
-      return false;
-    }
-    hideLogin();
+    const cached = JSON.parse(sessionStorage.getItem(ADMIN_CACHE_KEY) || "null");
+    if (!cached?.qrs?.length) return false;
+    state.staticMode = false;
+    state.qrs = cached.qrs;
+    if (!state.selectedId && state.qrs[0]) state.selectedId = state.qrs[0].id;
+    renderAll();
     return true;
   } catch {
-    state.staticMode = true;
-    hideLogin();
-    return true;
+    return false;
+  }
+}
+
+function cacheAdminQrs(qrs) {
+  try {
+    sessionStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify({ qrs, cachedAt: Date.now() }));
+  } catch {
+    // Best-effort cache only.
   }
 }
 
@@ -153,6 +154,7 @@ async function loadQrs() {
     const data = await response.json();
     state.staticMode = false;
     state.qrs = data.qrs;
+    cacheAdminQrs(state.qrs);
   } catch {
     state.staticMode = true;
     state.qrs = loadLocalQrs();
@@ -429,6 +431,7 @@ async function login(event) {
 
 async function logout() {
   await apiFetch("/api/logout", { method: "POST" });
+  sessionStorage.removeItem(ADMIN_CACHE_KEY);
   state.qrs = [];
   state.selectedId = null;
   renderAll();
@@ -489,6 +492,5 @@ $("#downloadPng").addEventListener("click", downloadPng);
 $("#downloadSvg").addEventListener("click", downloadSvg);
 ["input", "change"].forEach(eventName => els.form.addEventListener(eventName, () => renderQr(currentForm())));
 
-checkSession().then(ok => {
-  if (ok) loadQrs();
-});
+hydrateFromCache();
+loadQrs();
